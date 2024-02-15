@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TCSS 445</title>
+    <link rel="stylesheet" href="reset.css" />
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <div id="flexContainer">
+        <div id="navContainer">
+            <nav id="nav"></nav>
+        </div>
+        <main id="main">
+<section id="md\01.md" class="notes-section"> 
+    <h1>Notice</h1>
+    <p>While <span title="Marcus A. Bartlett">I</span> am the author of this site, the content of this site was adapted from lecture notes I took while attending University of Washington Tacoma Professor Mohamed Ali's TCSS 445 course.</p>
+</section>
+<section id="md\02.md" class="notes-section"> 
+<h1>Introduction to Databases</h1>
+
+<h2>Databases and Database Models</h2>
+
+<p>A <strong>database</strong> is a very large collection of related data. A <strong>database management system</strong> (DBMS) provides efficient, reliable, convenient, and safe multi-user storage of and access to massive amounts of persistent data. It is a software package or system that reads and writes directly to a database. A <strong>database system</strong> is a DBMS in addition to data and applications. The database system is the whole picture.</p>
+
+<p>A <strong>database model</strong> consists of entities, relationships, and business logic. Any entry in a database model is an <em>entity</em>. These entities have <em>relationships</em> between each other. For example, a student is enrolled in many courses and these courses are attended by many students. <em>Business logic</em> are the active components. For example, a student cannot take more than 18 credits per quarter. A <strong>schema</strong> describes how data is to be structured. It is defined at set-up time and rarely changes.</p>
+
+<h2>Why Use Databases?</h2>
+
+<p>The reason we cannot simply store data in &quot;flat&quot; files is that data can be redundant and inconsistent. There are multiple file formats and information can be duplicated in different files. The worst word there is in database systems is &quot;redundancy.&quot; Another issue that arises from storing data this way is that every query has to have its own program. We want retrieval to be easy to write and we want queries to execute efficiently. The third problem is that the data has no integrity: concurrency allows simultaneous modifications, system crashes can cause unwanted modifications (or lack thereof), and entries can be made in error. These kind of systems are not necessarily very secure.</p>
+
+<p>Storage in databases allows for the expression of relationships between entities. Each entity, and their relationships, are stored once and only once.</p>
+</section> 
+<section id="md\03.md" class="notes-section"> 
+<h1>The Entity-Relationship Model</h1>
+
+<h2>Introduction</h2>
+
+<p>A <strong>data model</strong> is a plan or blueprint for a database design. The <strong>entity-relationship model</strong> (ER model) is a data model that provides a way to represent entities and their attributes. The entities in an ER model become the rows in a database table and the entities&#39; attributes become the columns. (An entity in an ER diagram is typically given a singular name while the corresponding table&#39;s name is plural.) The ER model version used in this course is the Information Engineering (IE) model, a.k.a. the &quot;crow&#39;s foot&quot; model. Here is an example:</p>
+
+<pre><code>  Employee
+┌────────────────┐
+│ EmployeeNumber │
+├────────────────┤
+│ EmployeeName   │
+│ Phone          │
+│ Email          │
+└────────────────┘</code></pre>
+
+<p>In this example, the <strong>identifier</strong> for the employee is EmployeeNumber. That is, it is an attribute, or group of attributes, that is <em>unique</em> for each entity that differentiates each entity from all others. When there are multiple attributes that identify entities, they are called <strong>composite identifiers</strong>. Identifiers become <em>keys</em> in tables.</p>
+
+<p>We&#39;ve covered the &quot;E&quot; in &quot;ER,&quot; so now let&#39;s discuss relationships. Most relationships are <em>binary</em> (i.e., between two entities) but there exist <em>ternary</em> relationships (and so on). Relationships are expressed with diamonds:</p>
+
+<pre><code>┌──────────┐                 ┌──────────┐
+│ Employee ├────────◊────────┤  Skill   │
+└──────────┘  Qualification  └──────────┘</code></pre>
+
+<h2>Cardinality</h2>
+
+<p>Each relationship has a <strong>cardinality</strong>, which is limited to the following:</p>
+
+<ul><li>One-to-one (1:1)</li><li>One-to-many (1:N)</li><li>Many-to-many (N:M)</li></ul>
+
+<p>Cardinalities are displayed within the diamond that expresses the relationship. A one-to-one relationship is also called a <strong>subtype relationship</strong> or an <strong>is a</strong> relationship. When an entity can have one and only one subtype, this entity is a <strong>supertype</strong> and it has a <strong>discriminator</strong> to determine which subtype it is. This kind of relationship is <em>exclusive</em>. An <em>inclusive</em> relationship is one in which an entity is many subtypes. One-to-many relationships are also called <strong>parent-child relationships</strong> or <strong>has a relationships.</strong>  You can indicate minimum cardinality:</p>
+
+<pre><code>┌──────────┐                 ┌──────────┐
+│ Employee ├─o──────◊──────┼─┤  Skill   │
+└──────────┘  Qualification  └──────────┘</code></pre>
+
+<p>This means each employee must have at least one skill, but each skill need not be assigned to an employee. The above is an example of an <em>optional-to-mandatory</em> relationship. To say it again, in this course, we will be using the <strong>crow&#39;s foot</strong> ER diagrams. For a breakdown of all the symbols, you can visit <a href="https://www.vivekmchawla.com/erd-crows-foot-relationship-symbols-cheat-sheet/">this webpage</a>.</p>
+
+<p>You are <em>not</em> allowed to put a many-to-many relationship in your ER diagrams! You must break them up into two one-to-many relationships through an intermediary. For example, rather than many students having many courses, one student has many &quot;student courses&quot; and one course has many &quot;student courses.&quot; The table of this &quot;student course&quot; entity would have one column for the student ID and another column for the course ID. Both attributes identify a specific &quot;student course.&quot;</p>
+
+<h2>Strong and Weak Entities</h2>
+
+<p>A dotted line between entities means the identifying attributes for each entity are unique across all entities regardless of the entities&#39; relationships. These entities are called <strong>strong entities</strong>. This is contrasted with a <strong>weak entity</strong>, which are dependent upon another entity for identification. Weak entities need a parent in order to exist. They are often denoted with double lines in ER diagrams.</p>
+
+<p>When a solid line connects one entity to another, one entity&#39;s identifying attribute is added to the other entity&#39;s identifying attributes. When a dotted line connects two entities, one entity&#39;s identifying attribute &quot;flies down&quot; to the other entity&#39;s list of non-identifying attributes.</p>
+</section> 
+<section id="md\04.md" class="notes-section"> 
+<h1>SQL</h1>
+
+<h2>DDL and DML</h2>
+
+<p><strong>Data Definition Language</strong> (DDL) is used to define the structure of a database and its tables. It includes commands like</p>
+
+<ul><li><code>create database</code></li><li><code>drop database</code></li><li><code>create table</code></li><li><code>drop table</code></li><li><code>truncate table</code></li><li><code>alter table</code></li></ul>
+
+<p>Dropping a table means it is removed entirely from the database while truncating it means it remains in the database but all entries are deleted.</p>
+
+<p>DDL is contrasted with the <strong>Data Manipulation Language</strong> (DML), which is concerned with insertions, deletions, and updates. Another important aspect of DML is querying a database.</p>
+
+<h2>First Database</h2>
+
+<p>Let&#39;s use some SQL commands to make our first database. In SQL, commands must end in semicolons. Commands do not have to be in all capital letters, but it is a convention that some people use. Here are some SQL commands:</p>
+
+<pre><code>-- Two hyphens make a comment.
+-- This command creates a database.
+CREATE DATABASE my_database;
+
+-- This next command changes the active database.
+USE my_database;
+
+-- Here&#39;s how you delete a database:
+DROP DATABASE my_database;</code></pre>
+
+<p>You cannot drop an active database. You must switch to another database before dropping it.</p>
+
+<p>Let&#39;s make some tables! There are two ways to define a string in SQL. <code>CHAR(5)</code> sets a string of exactly 5 characters and <code>VARCHAR(5)</code> sets a string of variable length with a maximum of 5 characters. You can also use the keyword <code>MAX</code> instead of specifying a number. A list of MySQL data types can be found <a href="https://www.tutorialspoint.com/mysql/mysql-data-types.htm">on this webpage</a>.  </p>
+
+<pre><code>CREATE TABLE Campuses (
+    CampusId CHAR(3) PRIMARY KEY,
+    CampusName VARCHAR(40),
+    CampusAddr VARCHAR(50)
+);
+
+CREATE TABLE Students (
+    StudentId int primary key,
+    FName VARCHAR(20),
+    LName VARCHAR(20),
+    CampusId CHAR(3) REFERENCES Campuses(CampusId)
+);</code></pre>
+
+<p>If you want to use one of SQL&#39;s reserved keywords as a column name, such as <code>Description</code>, put square brackets around it (for Microsoft SQL Server) or put backticks around it (MySQL). If you want multiple attributes as primary keys, put this line at the very end of the table definition:</p>
+
+<pre><code>PRIMARY KEY (CampusId, StudentId)</code></pre>
+
+<p>The command <code>GO</code> can be used to run commands one after another instead of combining them. If you want to delete a table, use the command <code>DROP TABLE my_table</code>. Let&#39;s insert some data. Note that strings must be within single-quotes. To put a single quote in a string, use another single quote before it.</p>
+
+<pre><code>INSERT INTO Campuses VALUES(&#39;UWT&#39;, &#39;University of Washington Tacoma&#39;, &#39;Tacoma Address&#39;);
+INSERT INTO Campuses VALUES(&#39;UWS&#39;, &#39;University of Washington Seattle&#39;, &#39;Seattle Address&#39;);
+INSERT INTO Campuses VALUES(&#39;UWB&#39;, &#39;University of Washington Bothell&#39;, &#39;Bothell Address&#39;);</code></pre>
+
+<p>Now we can query the database.</p>
+
+<pre><code>SELECT * FROM Campuses;</code></pre>
+
+<h2>Constraints</h2>
+
+<p><strong>Constraints</strong> are rules about table data that are enforced by the database management system. Constraints are listed after the data type in each column&#39;s definition.</p>
+
+<ul><li><code>NULL</code> essentially means &quot;I don&#39;t know.&quot; You can also use <code>NOT NULL</code> to ensure that each entry in the column is not null.</li><li><code>UNIQUE</code> requires each entry to be unique.</li><li><code>PRIMARY KEY</code> indicates the primary key. A primary key must not be null and it must be unique.</li><li><code>DEFAULT VALUE</code> allows you to define a default value for a column.</li><li>Referential integrity assures a foreign key exists. This is done by using <code>FOREIGN KEY</code> function and then the <code>REFERENCES</code> keyword.</li><li><code>IDENTITY(A, B)</code> allows the DBMS to assign values automatically to each entry starting at integer <code>A</code>, which is incremented by amount <code>B</code> for each entry. In MySQL, it is instead <code>AUTO_INCREMENT</code>.</li></ul>
+
+<p>Constraints can be named at the end of a table&#39;s definition like so:</p>
+
+<pre><code>CONSTRAINT CampusPK PRIMARY KEY(CampusId)</code></pre>
+
+<p>Each constraint in this form can have multiple parameters.</p>
+
+<p>When you have a foreign key, you can set a <strong>deletion/update policy</strong> like so:</p>
+
+<pre><code>FOREIGN KEY(beer) REFERENCES Beers(name)
+ON DELETE SET NULL
+ON UPDATE CASCADE</code></pre>
+
+<p>The polices are limited to</p>
+
+<ul><li><code>Default</code>, which means the modification is rejected.</li><li><code>Cascade</code>, which means the same modifications are made in the referencing table.</li><li><code>Set NULL</code>, which sets the referencing column to null.</li></ul>
+
+<h2>ALTER Statement</h2>
+
+<p>The <code>ALTER</code> statement changes a table after creation and can change its structure, properties, or constraints.</p>
+
+<pre><code>ALTER TABLE Assignment
+    ADD CONSTRAINT EmployeeFK
+        FOREIGN KEY (EmployeeNumber)
+        REFERENCES EMPLOYEE (EmployeeNumber)
+            ON UPDATE CASCADE
+            ON DELETE NO ACTION,
+
+ALTER TABLE Customer ADD MyColumn Char(5) NULL;
+ALTER TABLE Customer DROP COLUMN MyColumn;</code></pre>
+
+<p>Note that <em>constraints may restrict dropping</em>. Another table might still be reference a column. You can also add constraints by using the alter statement.</p>
+
+<h2>UPDATE Statement</h2>
+
+<p>You can update entries in a table by using the <code>UPDATE</code> statement.</p>
+
+<pre><code>UPDATE  Customer
+SET     AreaCode = &#39;303&#39;
+WHERE   City = &#39;Denver&#39;;</code></pre>
+
+<p>In this example, <code>Customer</code> is the name of the table. It will update the area code of each entry of this table wherever the customer&#39;s city is Denver.</p>
+
+<h2>DELETE Statement</h2>
+
+<p>The <code>DELETE</code> statement removes entries from a table.</p>
+
+<pre><code>DELETE FROM customer WHERE CustomerId = 1000;</code></pre>
+
+<p>If you omit the <code>WHERE</code> clause, you will delete every row in the table.</p>
+</section> 
+<section id="md\06.md" class="notes-section"> 
+<h1>Normalization</h1>
+
+<h2>What Is Normalization?</h2>
+
+<p>Imagine you have one entity called Student with all these attributes:</p>
+
+<ul><li>Student ID</li><li>Course ID</li><li>Student&#39;s name</li><li>Course name</li><li>Grade</li><li>Course description</li><li>Instructor ID</li><li>Instructor&#39;s name</li></ul>
+
+<p>This causes major problems and is guilty of a cardinal sin of database design: <strong>redundancy</strong>. Many students share courses and teachers, so we should <strong>normalize</strong> this design by splitting up the Student entity into multiple entities.</p>
+
+<h2>Dependencies</h2>
+
+<p>A <strong>functional dependency</strong> within a relation occurs when the value of one (set of) attribute(s) &quot;determines&quot; the value of a second (set of) attributes:</p>
+
+<pre><code>ObjectColor → Weight
+x → y</code></pre>
+
+<p>We can say this as &quot;Column x determines column y&quot; or &quot;Column y is functionally dependent on column x.&quot; We call it <em>functional</em> dependency because it&#39;s similar to a mathematical function that maps an input to one and only one output. When a determinant consists of more than one attribute, we call it a <strong>composite determinant</strong>:</p>
+
+<pre><code>(StudentName, ClassName) → (Grade)</code></pre>
+
+<p>If <code>A → (B, C)</code>, then <code>A → B</code> and <code>A → C</code>.</p>
+
+<p>Here is an example of a <strong>multi-valued dependency</strong>:</p>
+
+<pre><code>Student ID →→ Phone</code></pre>
+
+<p>In this example, one student can have many phone numbers.</p>
+
+<h2>Normal Forms</h2>
+
+<p>A <strong>normal form</strong> is a set of rules/conditions for a relations structure. There are five normal forms that we will study in this class and they all address redundancy:</p>
+
+<ul><li>First Normal Form (1NF): A table that qualifies as a relation is in 1NF. Each cell may only contain one value, which may be <code>NULL</code>.</li><li>Second Normal Form (2NF): A table in which there are no <em>partial dependencies</em> on the composite primary keys is in 2NF. Each attribute must be determined by all keys in a composite primary key. If an attribute isn&#39;t, then it must be moved to its own table with only the key(s) it is dependent on.</li><li>Third Normal Form (3NF): In a table in 3NF, there are no dependencies on non-key attributes.</li><li>Boyce-Codd Normal Form (BCNF): A non-key column cannot determine a key column. If this is the case, you must make tables where non-key columns do not determine key columns. Once this is done, the table is in BCNF.</li><li>Fourth Normal Form (4NF): When there are several multi-valued dependencies, the table is not in 4NF. If <code>A →→ B</code> and <code>A →→ C</code>, then you must break these two relations up into two separate tables to prevent redundancy.</li></ul>
+
+<p>Failure at any step in this process means that one must complete the process again from the beginning.</p>
+</section> 
+<section id="md\07.md" class="notes-section"> 
+<h1>Relational Algebra</h1>
+
+<h2>What is Relational Algebra?</h2>
+
+<p>An <strong>algebra</strong> is a mathematical system consisting of <em>operands</em> and <em>operators</em>. <strong>Relational algebra</strong> is an algebra such that the operands are <em>relations</em> and the operators are designed for the most common things done to relations. The result is an algebra that can be used as a query language for relations.</p>
+
+<h2>Relational Operations</h2>
+
+<p>The basic operators for relational algebra are</p>
+
+<ol><li>selection (σ)</li><li>projection (π)</li><li>union (∪)</li><li>set difference (-)</li><li>Cartesian product (×)</li><li>rename (ρ)</li></ol>
+
+<p>You can combine operators with parentheses and precedence rules.</p>
+
+<h3>Selection</h3>
+
+<p>$$R1 := \sigma_C(R2)$$</p>
+
+<p>R2 is the relation we are querying. R1 is the new relation resulting from the selection. C is a condition that refers to the attributes of R2. Selection is a unary operation.</p>
+
+<pre><code>Bar     Beer    Price
+
+Joe&#39;s   Bud     2.50
+Joe&#39;s   Miller  2.75
+Sue&#39;s   Bud     2.50
+Sue&#39;s   Miller  3.00</code></pre>
+
+<p>$$JoeMenu := \sigma_{bar = ``Joe&#39;s"}(Sells)$$</p>
+
+<p>This example selects all the beers from Joe&#39;s bar and makes a table out of them. The new table will not show Sue&#39;s beers.</p>
+
+<h3>Projection</h3>
+
+<p>$$R1 := \pi_L(R2)$$</p>
+
+<p>L is a list of attributes from the schema of R2. It removes a column. This is also a unary operation.</p>
+
+<p>$$Prices := \pi_{beer, price}(Sells)$$</p>
+
+<p>In this example, the bar column is removed. Non-unique rows may be removed to prevent duplicate entries. This is a controversial aspect of projection. Many choose not to remove duplicates because removing them is O(n).</p>
+
+<p>A related operation is <strong>extended projection</strong> . If R1 = (AB), then $$\pi_{A + B \rightarrow C, A, A}$$ has a new column C that contains entries that are A + B.</p>
+
+<h3>Cartesian Product</h3>
+
+<p>$$R3 := R1 \times R2$$</p>
+
+<p>Cartesian Product, a binary operation, creates a new table that contains a number of columns that is the sum of the number of columns in both tables. This operation works similarly to how Cartesian product works for sets: each row of R3 will be every possible combination of all the rows in R1 with R2. If R1 has n rows and R2 has m rows, then R3 will have n × m rows.</p>
+
+<p>A related operation is the <strong>theta join</strong> where two tables are combined with a condition. You can <a href="https://datacadamia.com/data/type/relation/operator/theta_join">read about it here</a>.</p>
+
+<p>Also related is the <strong>natural join</strong>, which is like theta join without a condition. It equates attributes of the same name and projects out one copy of each pair of equated attributes. If two columns have the same name and there are entries in this column that have the same name, natural join combines them.  Both of these latter operations use the bowtie symbol ⋈ instead of the × symbol.</p>
+
+<h3>Rename</h3>
+
+<p>$$R1 := \rho_{A1, ..., An}(R2)$$</p>
+
+<p>The rename operations renames R2 to R1. You can also rename the attributes A1, ..., An.</p>
+
+<h2>Expression Notations</h2>
+
+<p>The expression</p>
+
+<p>$$R3 := R1 \bowtie_C R2$$</p>
+
+<p>is equivalent to the following sequence:</p>
+
+<p>$$R4 := R1 \times R2$$</p>
+
+<p>$$R3 := \sigma_C(R4)$$</p>
+
+<p>You may also write it in <strong>linear notation</strong> as</p>
+
+<p>$$R3 := \sigma_C(R1 \times R2)$$</p>
+
+<p>In linear notation, there is a precedence of operators:</p>
+
+<ol><li>σ, π, ρ</li><li>×, ⋈</li><li>∩</li><li>∪, -</li></ol>
+
+<p>The third option for writing expressions is by using an <strong>expression tree</strong>. I don&#39;t feel like drawing one and putting it in this webpage. Draw them in your own notes!</p>
+
+<h2>Bag Semantics</h2>
+
+<p>A <strong>bag</strong> (or multiset) is like a set, but elements can appear more than once. Bag union is different from set union:</p>
+
+<p>$$ {1, 2, 1} \cup { 1, 1, 2, 3, 1 } = {1, 1, 1, 1, 2, 2, 3} $$</p>
+
+<p>Both tables must have the same schemas in order for their union to be defined. Be aware of the fact that bag laws are <em>not</em> the same as set laws. Set union is idempotent, but bag union is not.</p>
+
+<p>A bag can have duplicates removed with the function $$\delta(R)$$ where R is some bag. Bags can be sorted, too:</p>
+
+<p>$$R1 := T_L(R2)$$</p>
+
+<p>R1 is a sorted list of tuples of R2. L is a list of 1 or more attributes of R2. Elements in R1 are sorted by L.</p>
+
+<p>There is another important bag operation: <strong>aggregation</strong>, which includes</p>
+
+<ul><li>SUM</li><li>AVG</li><li>COUNT</li><li>MIN</li><li>MAX</li></ul>
+
+<p>Aggregation loops through each element in a table to produce a single value. Note that the operation to find a median is not included. This is because finding the median is $$O(nlogn)$$, and DBMS providers would prefer not to include any algorithms that are slower than linear time.</p>
+
+<p>The <strong>grouping operation</strong> works like so:</p>
+
+<p>$$R1 := \gamma_L(R2)$$</p>
+
+<p>L is a list of elements that are either grouping attributes or one of the aggregation operators. If we had a table R with primary key A, then $$\gamma_{A, AVG(C) \rightarrow X}(R)$$ is going to take all the entries in R with identical primary key values to produce an average of their values of the C table to store it in the new table&#39;s X column. Again, you can group by more than one column.</p>
+
+<h2>Null Semantics</h2>
+
+<p>What are the values of the aggregation operations on a table that includes a null value? As an example, if you use a theta-join on two tables where some columns will be null, you get either an <strong>outer join</strong>, which includes rows with null column entries, or an <strong>inner join</strong>, which includes only rows that have entirely non-null entries. An outer join is further divided into a <em>left outer join</em>, in which all entries of the first (left) table are non-null but entries of the second (right) table may be null, and a <em>right outer join</em>, which is the opposite. We say that outer join preserves <em>dangling tuples</em> by padding them with NULL ($$\omega$$). A dangling tuple is what you get when some entries are null.</p>
+
+<p>In cases where a Boolean value is expected, the truth-value of a null entry is <em>unknown</em>. This can result in unexpected behavior. For example, the expression <code>unknown == unknown</code> does <em>not</em> return &quot;true.&quot; This expression also returns &quot;unknown.&quot; Nothing is equal to null!</p>
+</section> 
+<section id="md\08.md" class="notes-section"> 
+<h1>SQL Queries</h1>
+
+<h2>Select Statement</h2>
+
+<p>SQL is a very high-level language. It tells the database what to do, not how to do it. The query optimizer determines how best to run the query. The <strong>SELECT statement</strong> is the foundation of a query:</p>
+
+<pre><code>SELECT needed attributes
+FROM one or more tables
+WHERE some condition that defines what rows are needed;</code></pre>
+
+<p>The needed attributes are in a comma-separated list. To eliminate duplicates, use the <strong>DISTINCT</strong> keyword. To select all columns, use the <strong>asterisk</strong> keyword: <code>*</code>:</p>
+
+<pre><code>SELECT *
+FROM SKU_DATA
+WHERE Department = &#39;Water Sports&#39;;</code></pre>
+
+<p>You may also use the <strong>order by</strong> keyword to sort data:</p>
+
+<pre><code>SELECT *
+FROM ORDER_ITEM
+ORDER BY OrderNumber, Price;</code></pre>
+
+<p>Note that you can specify primary and secondary sorting constraints. The default order for sorting is ascending order. You can also specify whether you want an ascending or descending sort:</p>
+
+<pre><code>ORDER BY Price DESC, OrderNumber ASC;</code></pre>
+
+<h2>Where Clause</h2>
+
+<p>You can use <strong>Boolean operators</strong> <code>AND</code>, <code>OR</code>, and <code>NOT</code> in a query:</p>
+
+<pre><code>WHERE Department = &#39;Water Sports&#39; AND Buyer = &#39;Nancy Meyers&#39;;</code></pre>
+
+<p>The where clause allows for use of the <strong>IN</strong> keyword, which is syntactic sugar for a series of <code>OR</code> statements:</p>
+
+<pre><code>WHERE Buyer IN (&#39;Nancy Meyers&#39;, &#39;Cindy Lo&#39;, &#39;Jerry Martin&#39;);</code></pre>
+
+<p>Keep in mind you can negate an <code>IN</code> expression by using <code>NOT IN</code>. If you want to select values that are in a specific range (<em>inclusive</em>), you can use the <strong>BETWEEN</strong> keyword:</p>
+
+<pre><code>SELECT *
+FROM ORDER_ITEM
+WHERE ExtendedPrice BETWEEN 100 AND 200;</code></pre>
+
+<p>This is also syntactic sugar because you can use relational operators like <code>&lt;=</code> and <code>&gt;=</code> instead.</p>
+
+<p>The <strong>LIKE</strong> keyword allows for a regular-expression-like statement when combined with <strong>wildcard symbols</strong>, which include <code>_</code> (exactly one character) and <code>%</code> (any set of zero or more characters):</p>
+
+<pre><code>SELECT *
+FROM SKU_DATA
+WHERE Buyer LIKE &#39;Pete%&#39;;</code></pre>
+
+<h2>Renaming</h2>
+
+<p>You can return a resulting table that has a renamed attribute by using the <strong>AS</strong> keyword:</p>
+
+<pre><code>SELECT ExtendedPrice AS Subtotal
+FROM ORDER_ITEM
+WHERE OrderNumber = 3000;</code></pre>
+
+<p>You can also perform arithmetic by using operations like <code>*</code> or <code>+</code>:</p>
+
+<pre><code>SELECT (Quantity * Price) AS EP, ExtendedPrice
+FROM ORDER_ITEM;</code></pre>
+
+<h2>SQL Built-In Functions</h2>
+
+<pre><code>SELECT SUM(ExtendedPrice) AS Order3000Sum
+FROM ORDER_ITEM
+WHERE OrderNumber = 3000;</code></pre>
+
+<p>In this example, we find the sum of the extended price and put it in a column called Order3000Sum. Here, <code>SUM</code> is a <strong>built-in function</strong>. Others include:</p>
+
+<ul><li><code>SUM</code></li><li><code>AVG</code></li><li><code>MIN</code></li><li><code>MAX</code></li><li><code>COUNT</code></li></ul>
+
+<p>Let&#39;s see how <code>COUNT</code> works:</p>
+
+<pre><code>SELECT COUNT(*) AS NumberOfRows
+FROM ORDER_ITEM;</code></pre>
+
+<p>In this example, we select everything in the table to get a count of the number of rows. Instead of using an asterisk, you can also name a column. In this next example, we get the number of distinct departments listed in the table:</p>
+
+<pre><code>SELECT COUNT(DISTINCT Department) AS DeptCount
+FROM SKU_DATA;</code></pre>
+
+<h2>Subqueries</h2>
+
+<p>You <em>cannot</em> select a column and use an aggregate. You also <em>cannot</em> use aggregates in the <code>WHERE</code> clause. In order to do this, you must use a <strong>subquery</strong>, enclosed in parentheses in the <code>WHERE</code> clause:</p>
+
+<pre><code>SELECT SUM(ExtendedPrice) AS Revenue
+FROM ORDER_ITEM
+WHERE SKU IN
+    (SELECT SKU
+    FROM SKU_DATA
+    WHERE Department = &#39;Water Sports&#39;);</code></pre>
+
+<p>Note that subqueries are evaluated first.</p>
+
+<h2>Group By</h2>
+
+<pre><code>SELECT Buyer, COUNT(*) AS Dept_Buyer_SKU_Count
+FROM SKU_DATA
+GROUP BY Buyer;</code></pre>
+
+<p>This query lists each buyer and the number of products they are responsible for purchasing. <strong>Grouping</strong> divides the table into groups based on equality of the listed columns.
+The columns that are grouped may be selected, but <em>all other columns must be associated with an aggregate function</em>. Keep in mind the order that SQL executes statements:</p>
+
+<ol><li><code>FROM</code></li><li><code>WHERE</code></li><li><code>GROUP BY</code></li><li><code>HAVING</code></li><li><code>SELECT</code></li><li><code>ORDER BY</code></li></ol>
+
+<p>This means <code>HAVING</code> is a filter that runs after grouping.</p>
+
+<h2>Joining</h2>
+
+<pre><code>SELECT * FROM ORDER_ITEM, RETAIL_ORDER;</code></pre>
+
+<p>This query provides the cross product of the table. Another way to <strong>join</strong> two tables is by testing for equality between two tables&#39; column entries:</p>
+
+<pre><code>SELECT Buyer, ExtendedPrice
+FROM SKU_DATA, ORDER_ITEM
+WHERE SKU_DATA.SKU = ORDER_ITEM.SKU;</code></pre>
+
+<p>Another valid syntax is using the <code>JOIN</code> and <code>ON</code> keywords:</p>
+
+<pre><code>SELECT CUSTOMER.Name, ARTIST.Name
+FROM CUSTOMER JOIN CUSTOMER_ARTIST_INT
+ON Customer.CustomerID = CUSTOMER_ARTIST_INT.CustomerID;</code></pre>
+
+<p>Both forms are valid and there is no difference in performance. Joins can be chained together. Use aliases to avoid big, unwieldy lines of code. (Some DBMS&#39;s require usage of the <code>AS</code> keyword for aliases, but others do not.) Remember the different kinds of joins in relational algebra and be aware of the problem of dangling tuples!</p>
+
+<h2>Embedded SQL</h2>
+
+<p>To use <strong>embedded SQL</strong> is to embed SQL into a program. Embedded SQL serves either to accept <strong>forms</strong> or <strong>reports</strong>. Forms are interfaces that the user interacts with while reports are queries that the user is not the creator of. The most essential component to embedded SQL is the <strong>connection</strong>, in which you tell the system where the database is. You must specify the ID of the server (which can be &quot;localhost&quot;), the name of the database, the username, and the password.</p>
+</section> 
+<section id="md\09.md" class="notes-section"> 
+<h1>Final Things</h1>
+
+<h2>Views</h2>
+
+<p>To save a subquery for later use, you can use the <code>CREATE VIEW</code> command:</p>
+
+<pre><code>CREATE VIEW CustomerNameView AS
+    SELECT  LastName AS CustomerLastName,
+            FirstName AS CustomerFirstName
+    From    CUSTOMER;</code></pre>
+
+<p>You can use it later:</p>
+
+<pre><code>SELECT * FROM CustomerNameView;</code></pre>
+
+<p>Views can be used to protect privacy since it obscures unneeded information.</p>
+
+<h2>Indices</h2>
+
+<p>Using <strong>indices</strong> can increase efficiency. This means an O(n) runtime can become an O(logn) runtime by turning the index from a linear data structure into a binary tree.</p>
+
+<pre><code>CREATE INDEX CarIndex ON Cars (CarType);</code></pre>
+
+<p>The <code>CarType</code> column is the index by which searches are frequently made. However, indices can slow down insertions and deletions because of the required rotations.</p>
+
+<h2>Memory and Hard Drive</h2>
+
+<p>Some data structures are disk-based while others are memory-based. Keep in mind that a hard-drive is about a thousand times slower than memory. The efficiency of a database implementation is based on the number of disk accesses. Writing to the disk requires writing at least a <strong>disk page</strong> which varies by systems. The binary-search-tree is memory-based while the b-tree is disk-based. We want each node on the b-tree to be the size of a disk page.</p>
+
+<h2>Clustered Indices</h2>
+
+<p>Indices may be <strong>clustered</strong>, which means the data is written to the disk in a sorted order. The creation of a clustered index can be good or bad. It increases the speed of searching but decreases the cost of maintenance (i.e., insertion, deletion, and updating). It also takes more disk space. To have non-clustered indices, there must be at least one clustered index.</p>
+
+<h2>Triggers</h2>
+
+<p><strong>Triggers</strong> lets us decide when to check for any condition. It prevents the user from entering bad data into the system. Triggers are replacements for assertions since assertions are so expensive.</p>
+
+<p>Triggers consist of three parts:</p>
+
+<ul><li>Event (before/after insertion or instead of inserting)</li><li>Condition</li><li>Action</li></ul>
+
+<p>Here&#39;s an example:</p>
+
+<pre><code>CREATE TRIGGER BeerTrig
+    AFTER INSERT ON Sells           -- The event
+    REFERENCING NEW ROW AS NewTuple
+    FOR EACH ROW
+    WHEN (NewTuple.beer NOT IN
+        (SELECT name FROM Beers))   -- The condition
+    INSERT INTO Beers(name)
+        VALUES(NewTuple.beer);      -- The action</code></pre>
+</section> 
+        </main>
+    </div><!--end #flexContainer-->
+    <script src="script.js"></script>
+    <script src="https://i.upmath.me/latex.js"></script>
+</body>
+</html>
